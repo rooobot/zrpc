@@ -26,5 +26,6 @@ func main() {
 		zrpc.WithTimeout(2000 * time.Millisecond),
 	}
 	s := zrpc.NewServer(opts...)
-	helloworld.
+	helloworld.RegisterService(s, &greeterService{})
+	s.Serve()
 }

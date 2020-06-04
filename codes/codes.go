@@ -41,9 +41,9 @@ func (e *Error) Error() string {
 		return Success
 	}
 	if e.Type == FrameworkError {
-		return fmt.Sprintf("type : framework, code : #{e.Code}, msg : #{e.Message}")
+		return fmt.Sprintf("type : framework, code : %d, msg : %s", e.Code, e.Message)
 	}
-	return fmt.Sprintf("type : business, code : #{e.Code}, msg : #{e.Message}")
+	return fmt.Sprintf("type : business, code : %d, msg : %s", e.Code, e.Message)
 }
 
 // new a framework type error

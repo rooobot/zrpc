@@ -79,7 +79,7 @@ func (s *service) Serve(opts *ServerOptions) {
 		return
 	}
 
-	fmt.Printf("%s service at %s ... \n", s.opts.protocol, s.opts.address)
+	fmt.Printf("%s service serving at %s ... \n", s.opts.protocol, s.opts.address)
 
 	<-s.ctx.Done()
 }

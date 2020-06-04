@@ -208,7 +208,7 @@ func (s *Server) Serve() {
 type emptyService struct{}
 
 func (s *Server) ServeHttp() {
-	if err := s.RegisterService("/http", new(emptyInterface)); err != nil {
+	if err := s.RegisterService("/http", new(emptyService)); err != nil {
 		panic(err)
 	}
 

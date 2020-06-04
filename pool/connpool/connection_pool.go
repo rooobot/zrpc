@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// Pool provides a pooling capability for connections, enabling connection reuse
 type Pool interface {
 	Get(ctx context.Context, network string, address string) (net.Conn, error)
 }
@@ -22,13 +23,14 @@ var poolMap = make(map[string]Pool)
 var oneByte = make([]byte, 1)
 
 func init() {
-	registerPool("default", DefaultPool)
+	registorPool("default", DefaultPool)
 }
 
-func registerPool(poolName string, pool Pool) {
+func registorPool(poolName string, pool Pool) {
 	poolMap[poolName] = pool
 }
 
+// GetPool get a Pool by a pool name
 func GetPool(poolName string) Pool {
 	if v, ok := poolMap[poolName]; ok {
 		return v
@@ -40,7 +42,7 @@ func GetPool(poolName string) Pool {
 var DefaultPool = NewConnPool()
 
 func NewConnPool(opt ...Option) *pool {
-	// 默认值
+	// default options
 	opts := &Options{
 		maxCap:      1000,
 		idleTimeout: 1 * time.Minute,
@@ -60,6 +62,7 @@ func NewConnPool(opt ...Option) *pool {
 }
 
 func (p *pool) Get(ctx context.Context, network string, address string) (net.Conn, error) {
+
 	if value, ok := p.conns.Load(address); ok {
 		if cp, ok := value.(*channelPool); ok {
 			conn, err := cp.Get(ctx)
@@ -79,11 +82,11 @@ func (p *pool) Get(ctx context.Context, network string, address string) (net.Con
 
 type channelPool struct {
 	net.Conn
-	initialCap  int           // 初始化容量
-	maxCap      int           // 最大容量
-	maxIdle     int           // 最大空闲连接数
-	idleTimeout time.Duration // 空闲超时时长
-	dialTimeout time.Duration // 连接超时时长
+	initialCap  int           // initial capacity
+	maxCap      int           // max capacity
+	maxIdle     int           // max idle conn number
+	idleTimeout time.Duration // idle timeout
+	dialTimeout time.Duration // dial timeout
 	Dial        func(context.Context) (net.Conn, error)
 	conns       chan *PoolConn
 	mu          sync.RWMutex
@@ -138,9 +141,11 @@ func (c *channelPool) Get(ctx context.Context) (net.Conn, error) {
 		if pc == nil {
 			return nil, ErrConnClosed
 		}
+
 		if pc.unusable {
 			return nil, ErrConnClosed
 		}
+
 		return pc, nil
 	default:
 		conn, err := c.Dial(ctx)
@@ -189,17 +194,24 @@ func (c *channelPool) Put(conn *PoolConn) error {
 }
 
 func (c *channelPool) RegisterChecker(internal time.Duration, checker func(conn *PoolConn) bool) {
+
 	if internal <= 0 || checker == nil {
 		return
 	}
 
 	go func() {
+
 		for {
+
 			time.Sleep(internal)
+
 			length := len(c.conns)
+
 			for i := 0; i < length; i++ {
+
 				select {
 				case pc := <-c.conns:
+
 					if !checker(pc) {
 						pc.MarkUnusable()
 						pc.Close()
@@ -210,12 +222,15 @@ func (c *channelPool) RegisterChecker(internal time.Duration, checker func(conn 
 				default:
 					break
 				}
+
 			}
 		}
+
 	}()
 }
 
 func (c *channelPool) Checker(pc *PoolConn) bool {
+
 	// check timeout
 	if pc.t.Add(c.idleTimeout).Before(time.Now()) {
 		return false

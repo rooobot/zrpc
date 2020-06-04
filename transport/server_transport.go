@@ -68,7 +68,7 @@ func (s *serverTransport) ListenAndServe(ctx context.Context, opts ...ServerTran
 func (s *serverTransport) ListenAndServeTcp(ctx context.Context, opts ...ServerTransportOption) error {
 	lis, err := net.Listen(s.opts.Network, s.opts.Address)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	go func() {
@@ -100,7 +100,7 @@ func (s *serverTransport) serve(ctx context.Context, lis net.Listener) error {
 		if err != nil {
 			if ne, ok := err.(net.Error); ok && ne.Temporary() {
 				if tempDelay == 0 {
-					tempDelay = 5 * time.Microsecond
+					tempDelay = 5 * time.Millisecond
 				} else {
 					tempDelay *= 2
 				}
@@ -130,8 +130,9 @@ func (s *serverTransport) serve(ctx context.Context, lis net.Listener) error {
 			}
 		}()
 
-		return nil
 	}
+
+	return nil
 }
 
 func (s *serverTransport) handleConn(ctx context.Context, conn *connWrapper) error {

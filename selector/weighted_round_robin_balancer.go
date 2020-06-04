@@ -67,6 +67,7 @@ func (w *weightedRoundRobinBalancer) Balance(serviceName string, nodes []*Node) 
 			lastUpdateTime: time.Now(),
 			duration:       w.duration,
 		}
+		w.pickers.Store(serviceName, picker)
 	} else {
 		picker = p.(*wRoundRobinPicker)
 	}
