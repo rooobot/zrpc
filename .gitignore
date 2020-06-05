@@ -19,4 +19,4 @@ vendor/
 coverage.out
 *.DS_Store
 *.twirp.go
-*.pb.go
+#*.pb.go
